@@ -1,0 +1,18 @@
+# Environment & Secrets
+.env
+backend/.env
+frontend/.env
+*.env
+
+# Dependencies
+node_modules/
+backend/venv/
+backend/env/
+frontend/node_modules/
+
+# Build Output & Cache
+frontend/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store

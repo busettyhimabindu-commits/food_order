@@ -1,0 +1,275 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #FAF7F2;
+    color: #141414;
+    font-family: 'Inter', sans-serif;
+    @apply antialiased selection:bg-brand-500 selection:text-white min-h-screen flex flex-col;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', sans-serif;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ea580c;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.dark-glass-panel {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Animations & Keyframes */
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(234, 88, 12, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(234, 88, 12, 0.6);
+  }
+}
+
+@keyframes floatAnim {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes formShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-form-shake {
+  animation: formShake 0.4s ease-in-out;
+}
+
+@keyframes popBounce {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes borderRotate {
+  0% {
+    border-color: rgba(234, 88, 12, 0.8);
+  }
+
+  50% {
+    border-color: rgba(245, 158, 11, 0.8);
+  }
+
+  100% {
+    border-color: rgba(234, 88, 12, 0.8);
+  }
+}
+
+/* Item Specific Food Animations */
+@keyframes flameRise {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.9;
+  }
+
+  50% {
+    transform: translateY(-12px) scale(1.1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-24px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes steamRise {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.8);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateY(-10px) translateX(4px) scale(1.2);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translateY(-20px) translateX(-4px) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes mangoSplashPulse {
+
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+  }
+
+  50% {
+    transform: scale(1.08) rotate(3deg);
+    filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.8));
+  }
+}
+
+@keyframes cheesePullGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(234, 179, 8, 0.3), inset 0 0 10px rgba(234, 179, 8, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(234, 179, 8, 0.7), inset 0 0 15px rgba(234, 179, 8, 0.4);
+  }
+}
+
+@keyframes syrupDrip {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes glowingBorderGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.pulse-glow {
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+.animate-float {
+  animation: floatAnim 4s ease-in-out infinite;
+}
+
+.animate-pop-bounce {
+  animation: popBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.3) 20%,
+      rgba(255, 255, 255, 0.6) 60%,
+      rgba(255, 255, 255, 0));
+  animation: shimmerSweep 3s infinite;
+}
+
+.border-pulse {
+  animation: borderRotate 3s infinite;
+}
+
+/* Sizzling Flame & Steam Particle utility classes */
+.flame-particle {
+  animation: flameRise 1.8s ease-out infinite;
+}
+
+.steam-particle {
+  animation: steamRise 2.5s ease-out infinite;
+}
+
+.mango-splash {
+  animation: mangoSplashPulse 3s ease-in-out infinite;
+}
+
+.cheese-pull-glow {
+  animation: cheesePullGlow 2s ease-in-out infinite;
+}
+
+.syrup-drip {
+  animation: syrupDrip 2s ease-in-out infinite;
+}
+
+.animated-gradient-border {
+  background-size: 200% 200%;
+  animation: glowingBorderGradient 4s ease infinite;
+}
