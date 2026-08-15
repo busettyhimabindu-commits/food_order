@@ -10,6 +10,7 @@ import { Order } from '../types';
 import { formatCurrency, formatDate, parseUTCDate } from '../utils/formatters';
 
 import Modal from '../components/Modal';
+import TaxInvoiceModal from '../components/TaxInvoiceModal';
 import { useToast } from '../context/ToastContext';
 
 const OrderDetailPage: React.FC = () => {
@@ -21,6 +22,7 @@ const OrderDetailPage: React.FC = () => {
   const [liveMessage, setLiveMessage] = useState<string>('');
   
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('Changed my mind');
   const [cancelling, setCancelling] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(300);
@@ -119,13 +121,9 @@ const OrderDetailPage: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => {
-              const token = localStorage.getItem('token');
-              const invoiceUrl = `${API_BASE_URL}/api/orders/${order.id}/invoice${token ? `?token=${token}` : ''}`;
-              window.open(invoiceUrl, '_blank');
-            }}
-            title="Download Official Invoice"
-            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+            onClick={() => setShowInvoiceModal(true)}
+            title="View & Download Official Invoice"
+            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-2xs"
           >
             📄 <span className="hidden sm:inline">Tax Invoice</span>
           </button>
@@ -317,6 +315,12 @@ const OrderDetailPage: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      <TaxInvoiceModal
+        order={order}
+        isOpen={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+      />
     </div>
   );
 };

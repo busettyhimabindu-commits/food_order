@@ -10,12 +10,14 @@ import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 
 import Modal from '../components/Modal';
+import TaxInvoiceModal from '../components/TaxInvoiceModal';
 
 const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [now, setNow] = useState<number>(Date.now());
   const [selectedCancelOrder, setSelectedCancelOrder] = useState<Order | null>(null);
+  const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
   const [cancelReason, setCancelReason] = useState('Changed my mind');
   const [cancelling, setCancelling] = useState(false);
 
@@ -185,12 +187,8 @@ const OrdersPage: React.FC = () => {
 
                     <button
                       type="button"
-                      onClick={() => {
-                        const token = localStorage.getItem('token');
-                        const invoiceUrl = `${API_BASE_URL}/api/orders/${order.id}/invoice${token ? `?token=${token}` : ''}`;
-                        window.open(invoiceUrl, '_blank');
-                      }}
-                      title="Download Tax Invoice"
+                      onClick={() => setSelectedInvoiceOrder(order)}
+                      title="View & Download Tax Invoice"
                       className="bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold px-3 py-2.5 rounded-xl text-xs border border-amber-200 flex items-center justify-center gap-1 transition-colors cursor-pointer"
                     >
                       📄 <span className="hidden sm:inline">Invoice</span>
@@ -283,6 +281,12 @@ const OrdersPage: React.FC = () => {
           </form>
         </Modal>
       )}
+
+      <TaxInvoiceModal
+        order={selectedInvoiceOrder}
+        isOpen={!!selectedInvoiceOrder}
+        onClose={() => setSelectedInvoiceOrder(null)}
+      />
 
     </div>
   );
