@@ -11,7 +11,7 @@ from app.models.user import User, UserPreference, Address, OTPVerification
 from app.schemas.schemas import (
     UserRegister, UserLogin, TokenResponse, UserOut, UserPreferenceUpdate, 
     UserPreferenceOut, AddressCreate, AddressOut, AddressUpdate,
-    SendOTPRequest, VerifyOTPRequest, UserRegisterWithOTP
+    SendOTPRequest, VerifyOTPRequest, UserRegisterWithOTP, ResetPasswordRequest
 )
 from app.utils.auth_utils import verify_password, get_password_hash, create_access_token, get_current_user
 from app.services.email_service import send_otp_email
@@ -239,3 +239,66 @@ def delete_address(address_id: int, current_user: User = Depends(get_current_use
     db.delete(addr)
     db.commit()
     return {"message": "Address deleted successfully"}
+
+
+@router.post("/send-reset-otp")
+def send_reset_otp(request: SendOTPRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    clean_email = request.email.strip().lower()
+    
+    # Check if user exists
+    user = db.query(User).filter(func.lower(User.email) == clean_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"No account found for '{clean_email}'. Please register a new account.")
+
+    # Generate 6-digit random code
+    otp_code = "".join(random.choices(string.digits, k=6))
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
+
+    # Clear previous pending OTPs
+    db.query(OTPVerification).filter(func.lower(OTPVerification.email) == clean_email).delete()
+    
+    otp_rec = OTPVerification(
+        email=clean_email,
+        otp_code=otp_code,
+        expires_at=expires_at,
+        is_verified=False
+    )
+    db.add(otp_rec)
+    db.commit()
+
+    print(f"\n============================================================")
+    print(f"[RESET OTP GENERATED] Email: {clean_email} | OTP Code: {otp_code}")
+    print(f"============================================================\n")
+
+    background_tasks.add_task(send_otp_email, clean_email, otp_code, user.name or "Valued Customer")
+    
+    return {
+        "message": f"Password reset OTP code sent to {clean_email}.",
+        "email": clean_email,
+        "delivered": True
+    }
+
+
+@router.post("/reset-password")
+def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
+    clean_email = req.email.strip().lower()
+    otp_code = req.otp_code.strip()
+
+    user = db.query(User).filter(func.lower(User.email) == clean_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    otp_rec = db.query(OTPVerification).filter(
+        func.lower(OTPVerification.email) == clean_email,
+        OTPVerification.otp_code == otp_code
+    ).first()
+
+    if not otp_rec or otp_rec.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP code")
+
+    user.password_hash = get_password_hash(req.new_password)
+    db.query(OTPVerification).filter(func.lower(OTPVerification.email) == clean_email).delete()
+    db.commit()
+
+    return {"message": "Password reset successfully! You can now log in with your new password."}
+
