@@ -21,14 +21,16 @@ def safe_log(msg: str):
         print(msg.encode("ascii", "replace").decode("ascii"))
 
 def _send_email_dispatch(to_email: str, user_name: str, subject: str, text_content: str, html_content: str) -> bool:
-    """Helper method to dispatch email via Brevo REST API or Brevo SMTP."""
+    """Helper method to dispatch email via Brevo REST API (Port 443 - Deployment Proof) or Brevo SMTP (Port 587)."""
     sender_email = get_valid_sender_email()
     sender_name = settings.SMTP_FROM_NAME or "Hima's Food AI"
 
-    # 1. Try Brevo REST API if API Key starts with xkeysib-
-    if settings.BREVO_API_KEY and settings.BREVO_API_KEY.startswith("xkeysib-"):
+    api_key = settings.BREVO_API_KEY or settings.SMTP_PASSWORD
+
+    # 1. Try Brevo REST API over HTTPS (Port 443 - Works on Render, Vercel, Heroku, AWS without port 587 blocking)
+    if api_key:
         try:
-            safe_log(f"[Email Service] Attempting Brevo REST API delivery from {sender_email} to {to_email}...")
+            safe_log(f"[Email Service] Attempting Brevo REST API delivery (HTTPS Port 443) from {sender_email} to {to_email}...")
             payload = {
                 "sender": {"name": sender_name, "email": sender_email},
                 "to": [{"email": to_email, "name": user_name}],
@@ -39,20 +41,20 @@ def _send_email_dispatch(to_email: str, user_name: str, subject: str, text_conte
             headers = {
                 "accept": "application/json",
                 "content-type": "application/json",
-                "api-key": settings.BREVO_API_KEY
+                "api-key": api_key.strip()
             }
             response = requests.post(settings.BREVO_API_URL, json=payload, headers=headers, timeout=10)
             if response.status_code in (200, 201, 202):
-                safe_log(f"[Email Service Success] Delivered email '{subject}' to {to_email} via Brevo REST API!")
+                safe_log(f"[Email Service Success] Delivered email '{subject}' to {to_email} via Brevo REST API (HTTPS)!")
                 return True
             else:
-                safe_log(f"[Email Service REST Warning]: {response.status_code} - {response.text}")
+                safe_log(f"[Brevo REST API Notice]: HTTP {response.status_code} - {response.text}")
         except Exception as api_err:
-            safe_log(f"[Email Service REST Exception]: {api_err}")
+            safe_log(f"[Brevo REST API Exception]: {api_err}")
 
-    # 2. Try Brevo SMTP (Works with xsmtpsib-... SMTP credentials)
+    # 2. Fallback to Brevo SMTP (Port 587 - Works locally, may be blocked on Render Free Tier)
     try:
-        safe_log(f"[Email Service] Connecting to Brevo SMTP ({settings.SMTP_HOST}:{settings.SMTP_PORT}) from {sender_email} to {to_email}...")
+        safe_log(f"[Email Service] Fallback: Connecting to Brevo SMTP ({settings.SMTP_HOST}:{settings.SMTP_PORT}) from {sender_email} to {to_email}...")
         msg = MIMEMultipart("alternative")
         msg["Subject"] = Header(subject, "utf-8").encode()
         msg["From"] = f"{sender_name} <{sender_email}>"
@@ -74,9 +76,14 @@ def _send_email_dispatch(to_email: str, user_name: str, subject: str, text_conte
 
     except Exception as e:
         safe_log(f"\n============================================================")
-        safe_log(f"[BREVO NOTICE]: Failed to send '{subject}' to {to_email}: {e}")
+        safe_log(f"[BREVO DEPLOYMENT NOTICE]: Could not send email via SMTP: {e}")
+        safe_log(f"NOTE: Hosting providers like Render free tier block SMTP Port 587.")
+        safe_log(f"To enable 100% reliable email delivery on Render:")
+        safe_log(f"1. Go to Brevo Dashboard -> SMTP & API -> API Keys -> Create API Key")
+        safe_log(f"2. Copy key starting with 'xkeysib-'")
+        safe_log(f"3. Add BREVO_API_KEY=xkeysib-... to your Render Environment Variables!")
         safe_log(f"============================================================\n")
-        return True
+        return False
 
 def send_otp_email(to_email: str, otp_code: str, user_name: str = "Valued Customer") -> bool:
     """Sends a 6-digit OTP verification code to user email via Brevo."""
