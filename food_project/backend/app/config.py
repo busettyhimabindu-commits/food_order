@@ -22,8 +22,6 @@ class Settings(BaseSettings):
             return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         return f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
-
-
     JWT_SECRET: str = os.getenv("JWT_SECRET", "hima_food_ai_super_secret_jwt_key_2026_secure")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 4320 # 3 days
@@ -38,21 +36,15 @@ class Settings(BaseSettings):
 
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp-relay.brevo.com")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
-    @property
-    def get_smtp_user(self) -> str:
-        return os.getenv("SMTP_USER") or self.SMTP_USER
-
-    @property
-    def get_smtp_password(self) -> str:
-        return os.getenv("SMTP_PASSWORD") or self.SMTP_PASSWORD
-
-    @property
-    def get_brevo_api_key(self) -> str:
-        return os.getenv("BREVO_API_KEY") or os.getenv("SMTP_PASSWORD") or self.BREVO_API_KEY
+    SMTP_USER: str = os.getenv("SMTP_USER", "b56718001@smtp-brevo.com")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "busettyhimabindu@gmail.com")
+    SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "Hima's Food AI")
+    BREVO_API_KEY: str = os.getenv("BREVO_API_KEY", os.getenv("SMTP_PASSWORD", ""))
+    BREVO_API_URL: str = "https://api.brevo.com/v3/smtp/email"
 
     class Config:
         env_file = ".env"
         extra = "ignore"
 
 settings = Settings()
-

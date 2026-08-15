@@ -25,9 +25,9 @@ def _send_email_dispatch(to_email: str, user_name: str, subject: str, text_conte
     sender_email = get_valid_sender_email()
     sender_name = settings.SMTP_FROM_NAME or "Hima's Food AI"
 
-    smtp_pass = getattr(settings, 'get_smtp_password', None) or settings.SMTP_PASSWORD
-    smtp_user = getattr(settings, 'get_smtp_user', None) or settings.SMTP_USER
-    api_key = getattr(settings, 'get_brevo_api_key', None) or settings.BREVO_API_KEY or smtp_pass
+    smtp_pass = settings.SMTP_PASSWORD
+    smtp_user = settings.SMTP_USER
+    api_key = settings.BREVO_API_KEY or settings.SMTP_PASSWORD
 
     # 1. Try Brevo REST API over HTTPS (Port 443 - Works on Render, Vercel, Heroku, AWS without port 587 blocking)
     if api_key:
