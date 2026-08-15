@@ -25,7 +25,9 @@ def _send_email_dispatch(to_email: str, user_name: str, subject: str, text_conte
     sender_email = get_valid_sender_email()
     sender_name = settings.SMTP_FROM_NAME or "Hima's Food AI"
 
-    api_key = settings.BREVO_API_KEY or settings.SMTP_PASSWORD
+    smtp_pass = getattr(settings, 'get_smtp_password', None) or settings.SMTP_PASSWORD
+    smtp_user = getattr(settings, 'get_smtp_user', None) or settings.SMTP_USER
+    api_key = getattr(settings, 'get_brevo_api_key', None) or settings.BREVO_API_KEY or smtp_pass
 
     # 1. Try Brevo REST API over HTTPS (Port 443 - Works on Render, Vercel, Heroku, AWS without port 587 blocking)
     if api_key:
@@ -43,7 +45,7 @@ def _send_email_dispatch(to_email: str, user_name: str, subject: str, text_conte
                 "content-type": "application/json",
                 "api-key": api_key.strip()
             }
-            response = requests.post(settings.BREVO_API_URL, json=payload, headers=headers, timeout=10)
+            response = requests.post("https://api.brevo.com/v3/smtp/email", json=payload, headers=headers, timeout=10)
             if response.status_code in (200, 201, 202):
                 safe_log(f"[Email Service Success] Delivered email '{subject}' to {to_email} via Brevo REST API (HTTPS)!")
                 return True
@@ -67,7 +69,7 @@ def _send_email_dispatch(to_email: str, user_name: str, subject: str, text_conte
         server.ehlo()
         server.starttls()
         server.ehlo()
-        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+        server.login(smtp_user, smtp_pass)
         server.sendmail(sender_email, [to_email], msg.as_string())
         server.quit()
 
