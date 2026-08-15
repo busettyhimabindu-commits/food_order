@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, RotateCcw, Eye, Star, Clock } from 'lucide-react';
 import { orderService } from '../services/orderService';
+import { API_BASE_URL } from '../services/api';
 import { Order } from '../types';
 import { formatCurrency, formatDate, parseUTCDate } from '../utils/formatters';
 import SkeletonLoader from '../components/SkeletonLoader';
@@ -177,10 +178,23 @@ const OrdersPage: React.FC = () => {
 
                     <Link
                       to={`/orders/${order.id}`}
-                      className="flex-1 sm:flex-none bg-[#FAF7F2] hover:bg-slate-100 text-slate-800 font-bold px-4 py-2.5 rounded-xl text-xs border border-[#E8E2D9] flex items-center justify-center gap-1.5 transition-colors"
+                      className="flex-1 sm:flex-none bg-[#FAF7F2] hover:bg-slate-100 text-slate-800 font-bold px-3.5 py-2.5 rounded-xl text-xs border border-[#E8E2D9] flex items-center justify-center gap-1.5 transition-colors"
                     >
                       <Eye className="w-4 h-4 text-slate-500" /> Details
                     </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const token = localStorage.getItem('token');
+                        const invoiceUrl = `${API_BASE_URL}/api/orders/${order.id}/invoice${token ? `?token=${token}` : ''}`;
+                        window.open(invoiceUrl, '_blank');
+                      }}
+                      title="Download Tax Invoice"
+                      className="bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold px-3 py-2.5 rounded-xl text-xs border border-amber-200 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                    >
+                      📄 <span className="hidden sm:inline">Invoice</span>
+                    </button>
 
                     <button
                       type="button"

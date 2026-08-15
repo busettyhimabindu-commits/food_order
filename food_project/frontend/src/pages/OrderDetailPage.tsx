@@ -5,6 +5,7 @@ import SkeletonLoader from '../components/SkeletonLoader';
 import PushNotificationPrompt from '../components/PushNotificationPrompt';
 import { Store, MapPin, CreditCard, Clock, RotateCcw, RefreshCw, ShoppingBag } from 'lucide-react';
 import { orderService } from '../services/orderService';
+import { API_BASE_URL } from '../services/api';
 import { Order } from '../types';
 import { formatCurrency, formatDate, parseUTCDate } from '../utils/formatters';
 
@@ -118,9 +119,13 @@ const OrderDetailPage: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => window.open(`http://localhost:8000/api/orders/${order.id}/invoice`, '_blank')}
+            onClick={() => {
+              const token = localStorage.getItem('token');
+              const invoiceUrl = `${API_BASE_URL}/api/orders/${order.id}/invoice${token ? `?token=${token}` : ''}`;
+              window.open(invoiceUrl, '_blank');
+            }}
             title="Download Official Invoice"
-            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-bold flex items-center gap-1 transition-all"
+            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
           >
             📄 <span className="hidden sm:inline">Tax Invoice</span>
           </button>

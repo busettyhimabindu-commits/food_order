@@ -32,7 +32,18 @@ const CartPage: React.FC = () => {
   const [couponInput, setCouponInput] = useState('');
   const [couponsList, setCouponsList] = useState<Coupon[]>([]);
   const [crossSellFoods, setCrossSellFoods] = useState<FoodItem[]>([]);
+  const [latestOrder, setLatestOrder] = useState<any>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && cart.length === 0) {
+      orderService.getOrders().then(orders => {
+        if (orders && orders.length > 0) {
+          setLatestOrder(orders[0]);
+        }
+      }).catch(err => console.error(err));
+    }
+  }, [user, cart.length]);
 
   useEffect(() => {
     const fetchCartExtras = async () => {
@@ -54,19 +65,60 @@ const CartPage: React.FC = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-6">
-        <div className="w-20 h-20 rounded-full bg-orange-100 text-brand-600 flex items-center justify-center mx-auto">
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-8">
+        <div className="w-20 h-20 rounded-full bg-orange-100 text-brand-600 flex items-center justify-center mx-auto shadow-inner">
           <ShoppingBag className="w-10 h-10" />
         </div>
-        <h2 className="text-2xl font-extrabold text-slate-900">Your Food Cart is Empty</h2>
-        <p className="text-sm text-slate-500 max-w-sm mx-auto">Looks like you haven't added any delicacies yet. Explore top dishes & AI recommendations!</p>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-3 rounded-2xl text-sm shadow-warm-glow"
-        >
-          <span>Explore Delicious Food</span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
+        <div className="space-y-2">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Your Food Cart is Empty</h2>
+          <p className="text-sm text-slate-500 max-w-md mx-auto">
+            You haven't added any delicacies yet, or your order has already been successfully placed!
+          </p>
+        </div>
+
+        {/* Recent Order Card */}
+        {latestOrder && (
+          <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-brand-500/10 rounded-3xl p-6 border border-amber-200/80 max-w-md mx-auto text-left space-y-3 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-extrabold text-brand-700 uppercase tracking-wider bg-amber-100 px-3 py-1 rounded-full">
+                Recent Order #{latestOrder.id}
+              </span>
+              <span className="text-xs font-bold text-slate-600">
+                {latestOrder.status}
+              </span>
+            </div>
+            <div>
+              <h4 className="text-base font-extrabold text-slate-900">{latestOrder.restaurant_name}</h4>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Total: {formatCurrency(latestOrder.total_amount)} • {latestOrder.payment_method}</p>
+            </div>
+            <Link
+              to={`/orders/${latestOrder.id}`}
+              className="w-full bg-brand-600 hover:bg-brand-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-all"
+            >
+              <span>Track Order & Download Invoice</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          {user && (
+            <Link
+              to="/orders"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-6 py-3.5 rounded-2xl text-sm shadow-sm transition-all"
+            >
+              <span>View All My Orders</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
+          <Link
+            to="/"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-3.5 rounded-2xl text-sm shadow-warm-glow transition-all"
+          >
+            <span>Explore Delicious Menu</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
     );
   }

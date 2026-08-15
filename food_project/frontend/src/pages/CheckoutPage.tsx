@@ -62,9 +62,13 @@ const CheckoutPage: React.FC = () => {
 
   useEffect(() => {
     if (cart.length === 0 && !submitting) {
-      navigate('/cart');
+      if (user) {
+        navigate('/orders');
+      } else {
+        navigate('/cart');
+      }
     }
-  }, [cart.length, submitting, navigate]);
+  }, [cart.length, submitting, navigate, user]);
 
   useEffect(() => {
     const loadCheckoutDefaults = async () => {
