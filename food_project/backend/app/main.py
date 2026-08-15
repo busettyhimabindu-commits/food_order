@@ -47,9 +47,19 @@ def on_startup():
     db = SessionLocal()
     try:
         seed_database_if_empty(db)
+
+        # Auto-resync PostgreSQL primary key sequences if on PostgreSQL/Supabase
+        from sqlalchemy import text
+        try:
+            tables = ['users', 'orders', 'order_items', 'restaurants', 'food_items', 'payments', 'addresses', 'coupons', 'reviews']
+            for table in tables:
+                db.execute(text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE(MAX(id), 1)) FROM {table};"))
+            db.commit()
+            print("[Startup] PostgreSQL primary key sequences successfully resynced!")
+        except Exception as seq_err:
+            print(f"[Startup Notice] Sequence resync skipped or non-Postgres DB: {seq_err}")
         
         # Ensure operating hours are set to 08:00:00 - 23:00:00
-        from sqlalchemy import text
         try:
             db.execute(text("UPDATE restaurants SET opens_at = '08:00:00', closes_at = '23:00:00'"))
             db.commit()
