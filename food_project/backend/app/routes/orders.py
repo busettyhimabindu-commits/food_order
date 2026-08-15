@@ -287,6 +287,7 @@ def create_order(order_in: OrderCreate, background_tasks: BackgroundTasks, curre
     
     # Trigger email notification
     try:
+        from app.services.email_service import send_order_status_email
         background_tasks.add_task(send_order_status_email, current_user.email, current_user.name, order.id, order.status, float(order.total_amount), restaurant.name)
     except Exception as email_err:
         print(f"[Order Email Error] {email_err}")

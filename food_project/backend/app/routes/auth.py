@@ -20,13 +20,13 @@ router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 
 @router.post("/send-signup-otp")
-def send_signup_otp(request: SendOTPRequest, db: Session = Depends(get_db)):
+def send_signup_otp(request: SendOTPRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     clean_email = request.email.strip().lower()
     
     # Check if user already exists
     existing = db.query(User).filter(func.lower(User.email) == clean_email).first()
     if existing:
-        raise HTTPException(status_code=400, detail="This email is already registered. Please sign in instead.")
+        raise HTTPException(status_code=400, detail=f"The email '{clean_email}' is already registered. Please sign in instead.")
 
     # Generate 6-digit random code
     otp_code = "".join(random.choices(string.digits, k=6))
@@ -45,13 +45,17 @@ def send_signup_otp(request: SendOTPRequest, db: Session = Depends(get_db)):
     db.add(otp_rec)
     db.commit()
 
-    # Send Email via Brevo SMTP
-    email_sent = send_otp_email(to_email=clean_email, otp_code=otp_code, user_name=request.name or "Valued Customer")
+    print(f"\n============================================================")
+    print(f"[OTP GENERATED] Email: {clean_email} | OTP Code: {otp_code}")
+    print(f"============================================================\n")
+
+    # Send Email via Brevo asynchronously via BackgroundTasks
+    background_tasks.add_task(send_otp_email, clean_email, otp_code, request.name or "Valued Customer")
     
     return {
-        "message": "OTP verification code sent to your email.",
+        "message": f"OTP verification code sent to {clean_email}.",
         "email": clean_email,
-        "delivered": email_sent
+        "delivered": True
     }
 
 
